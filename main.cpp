@@ -45,12 +45,47 @@ void genTree(Node *&node, int size, std::mt19937& gen, bool fNoDup) {
     std::cout << "\n\n";
 }
 
-Node* search(Node *node, int data) {
+Node* search(Node *node, int data, int depth = 0) {
     if (node == nullptr) return nullptr;
-    if (data == node->data) return node;
+    if (data == node->data) {
+        std::cout << "глубина узла: " << depth << "\n";
+        search(node->left, data, depth + 1);
+        return node;
+    }
     
-    if (data > node->data) return search(node->right, data);
-    else return search(node->left, data);
+    if (data > node->data) return search(node->right, data, depth + 1);
+    else return search(node->left, data, depth + 1);
+}
+
+Node* findMin(Node* node) {
+    while (node->left != nullptr) {
+        node = node->left;
+    }
+    return node;
+}
+
+void deleteNode(Node*& node, int data) {
+    if (node == nullptr) return;
+
+    if (data < node->data) {
+        deleteNode(node->left, data);
+    } else if (data > node->data) {
+        deleteNode(node->right, data);
+    } else {
+        if (node->left == nullptr) {
+            Node* temp = node->right;
+            delete node;
+            node = temp;
+        } else if (node->right == nullptr) {
+            Node* temp = node->left;
+            delete node;
+            node = temp;
+        } else {
+            Node* temp = findMin(node->right);
+            node->data = temp->data;
+            deleteNode(node->right, temp->data);
+        }
+    }
 }
 
 int countOccurrences(Node *node, int data) {
@@ -101,23 +136,29 @@ int main() {
     std::cout << "дерево: \n";
     printTree(node);
     
+    int action; 
     std::cout << "действия:\n";
     std::cout << "0 поиск заданного значения\n";
     std::cout << "1 подсчет числа вхождений\n";
+    if (fNoDup) std::cout << "2 удаление узла\n"; 
     std::cout << "номер: ";
-    std::cin >> command;
+    std::cin >> action;
     int data;
     std::cout << "введите число: ";
     std::cin >> data;
 
-    if (!command) {
+    if (action == 0) {
         Node* res = search(node, data);
         if (res == nullptr) std::cout << "число не существует\n";
         else std::cout << "число существует\n";
     }
-    else std::cout << "вхождений: " << countOccurrences(node, data) << "\n";
+    else if (action == 1) std::cout << "вхождений: " << countOccurrences(node, data) << "\n";
+    else if (action == 2 && fNoDup) {
+        deleteNode(node, data);
+        std::cout << "дерево: \n";
+        printTree(node);
+    }
     
     clearTree(node);
     return 0;
 }
-
